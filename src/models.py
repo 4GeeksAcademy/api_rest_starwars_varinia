@@ -8,25 +8,25 @@ db = SQLAlchemy()
 class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    password: Mapped[str] = mapped_column(nullable=False)
+    password: Mapped[str] = mapped_column(String(400), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
-    personajes: Mapped[List["FavoritPeople"]] = relationship()
-    planetas: Mapped[List["FavoritPlanet"]] = relationship()
+    planetas: Mapped[list["FavoritPlanets"]] = relationship(back_populates="user")
+    personajes: Mapped[list["FavoritPeople"]] = relationship(back_populates="user")
 
 
     def serialize(self):
         return {
             "id": self.id,
             "email": self.email,
-            # do not serialize the password, its a security breach
         }
+
 class People(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     birth_year: Mapped[str] = mapped_column(String(120), nullable=False)
     gender: Mapped[str] = mapped_column(String(40), nullable=False)
     species: Mapped[str] = mapped_column(String(60), nullable=False)
-    personajes: Mapped[List["FavoritPeople"]] = relationship(back_populates="People")
+    personajes: Mapped[list["FavoritPeople"]] = relationship(back_populates="people")
 
     def serialize(self):
         return {
@@ -39,13 +39,13 @@ class People(db.Model):
         }
 
 
-class Planet(db.Model):
+class Planets(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     diameter: Mapped[int] = mapped_column(Numeric(120), nullable=False)
     climate: Mapped[str] = mapped_column(String(100), nullable=False)
     population: Mapped[int] = mapped_column(Numeric(120), nullable=False)
-    planet: Mapped[List["FavoritPlanet"]] = relationship(back_populates="Planet")
+    planets: Mapped[List["FavoritPlanets"]] = relationship(back_populates="planet")
 
     def serialize(self):
         return {
@@ -54,7 +54,6 @@ class Planet(db.Model):
             "orbital_period": self.orbital_period,
             "climate": self.climate,
             "population": self.population,
-            # do not serialize the password, its a security breach
         }
 
 
@@ -62,7 +61,8 @@ class FavoritPeople(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     id_people: Mapped[int] = mapped_column(ForeignKey("people.id"), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    people: Mapped["People"] = relationship(back_populates="favoritpeople")
+    people: Mapped["People"] = relationship(back_populates="personajes")
+    user: Mapped["User"] = relationship(back_populates="personajes")
 
 
 
@@ -72,11 +72,12 @@ class FavoritPeople(db.Model):
         }
 
 
-class FavoritPlanet(db.Model):
+class FavoritPlanets(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     id_user: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
-    id_planet: Mapped[int] = mapped_column(ForeignKey("planet.id"), nullable=True)
-    planet: Mapped["Planet"] = relationship(back_populates="favoritplanet")
+    id_planet: Mapped[int] = mapped_column(ForeignKey("planets.id"), nullable=True)
+    planet: Mapped["Planets"] = relationship(back_populates="planets")
+    user: Mapped["User"] = relationship(back_populates="planetas")
 
     def serialize(self):
         return {

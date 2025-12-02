@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Planets, People, FavoritPeople, FavoritPlanets
 #from models import Person
 
 app = Flask(__name__)
@@ -36,16 +36,129 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+# endpoints usuario
 @app.route('/user', methods=['GET'])
 def handle_hello():
+    try:
+        query_results=User.query.all()
+        if not query_results:
+            return jsonify({"msg":"No users were found"}), 400
+        results= list(map(lambda item: item.serialize(), query_results))
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
+        response_body = {
+        "msg": "OK",
+        "results": results
     }
 
-    return jsonify(response_body), 200
+        return jsonify(response_body), 200
+    except Exception as e:
+        print(f"Error al obtener usuarios: {e}")
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
+
+#endpoits usuario especifico
+@app.route('/user/<int:user_id>', methods=['GET'])
+def user_by_id(user_id):
+    try:
+        query_results= User.query.filter_by(id=user_id).firts()
+        if not query_results:
+            return jsonify({"msg":"No users were found"}), 400
+        results= list(map(lambda item: item.serialize(), query_results))
+
+        response_body = {
+        "msg": "OK",
+        "results": results
+    }
+
+        return jsonify(response_body), 200
+    except Exception as e:
+        print(f"Error al obtener usuarios: {e}")
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
+
+#planets endpoints
+@app.route('/planets', methods=['GET'])
+def planets():
+    try:
+        query_results=Planets.query.all()
+        if not query_results:
+            return jsonify({"msg":"No planets were found"}), 400
+        results= list(map(lambda item: item.serialize(), query_results))
+
+        response_body = {
+        "msg": "OK",
+        "results": results
+    }
+
+        return jsonify(response_body), 200
+    except Exception as e:
+        print(f"Error al obtener planetas: {e}")
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
+
+#endpoits planet especifico
+@app.route('/planets/<int:planets_id>', methods=['GET'])
+def planet_by_id(planet_id):
+    try:
+        query_results= Planets.query.filter_by(id=planets_id).firts()
+        if not query_results:
+            return jsonify({"msg":"No planets were found"}), 400
+        results= list(map(lambda item: item.serialize(), query_results))
+
+        response_body = {
+        "msg": "OK",
+        "results": results
+    }
+
+        return jsonify(response_body), 200
+    except Exception as e:
+        print(f"Error al obtener planetas: {e}")
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
+
+#endpoints people
+@app.route('/people', methods=['GET'])
+def people():
+    try:
+        query_results=People.query.all()
+        if not query_results:
+            return jsonify({"msg":"No people were found"}), 400
+        results= list(map(lambda item: item.serialize(), query_results))
+
+        response_body = {
+        "msg": "OK",
+        "results": results
+    }
+
+        return jsonify(response_body), 200
+    except Exception as e:
+        print(f"Error al obtener personajes: {e}")
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
+
+#endpoints people especifico
+@app.route('/people/<int:people_id>', methods=['GET'])
+def people_by_id(people_id):
+    try:
+        query_results= People.query.filter_by(id=people_id).firts()
+        if not query_results:
+            return jsonify({"msg":"No people were found"}), 400
+        results= list(map(lambda item: item.serialize(), query_results))
+
+        response_body = {
+        "msg": "OK",
+        "results": results
+    }
+
+        return jsonify(response_body), 200
+    except Exception as e:
+        print(f"Error al obtener personajes: {e}")
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
+
+#post data people
+
+
+#post data planet
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=PORT, debug=False)
+
+
