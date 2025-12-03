@@ -10,8 +10,8 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(400), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
-    planetas: Mapped[list["FavoritPlanets"]] = relationship(back_populates="user")
-    personajes: Mapped[list["FavoritPeople"]] = relationship(back_populates="user")
+    favorite_planets: Mapped[list["FavoritePlanets"]] = relationship(back_populates="user")
+    favorite_pe0ple: Mapped[list["FavoritePeople"]] = relationship(back_populates="user")
 
 
     def serialize(self):
@@ -26,7 +26,7 @@ class People(db.Model):
     birth_year: Mapped[str] = mapped_column(String(120), nullable=False)
     gender: Mapped[str] = mapped_column(String(40), nullable=False)
     species: Mapped[str] = mapped_column(String(60), nullable=False)
-    personajes: Mapped[list["FavoritPeople"]] = relationship(back_populates="people")
+    favs: Mapped[list["FavoritePeople"]] = relationship(back_populates="people")
 
     def serialize(self):
         return {
@@ -45,19 +45,19 @@ class Planets(db.Model):
     diameter: Mapped[int] = mapped_column(Numeric(120), nullable=False)
     climate: Mapped[str] = mapped_column(String(100), nullable=False)
     population: Mapped[int] = mapped_column(Numeric(120), nullable=False)
-    planets: Mapped[List["FavoritPlanets"]] = relationship(back_populates="planet")
+    favs: Mapped[List["FavoritePlanets"]] = relationship(back_populates="planet")
 
     def serialize(self):
         return {
             "id": self.id,
             "name": self.name,
-            "orbital_period": self.orbital_period,
+            "diameter": self.diameter,
             "climate": self.climate,
             "population": self.population,
         }
 
 
-class FavoritPeople(db.Model):
+class FavoritePeople(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     id_people: Mapped[int] = mapped_column(ForeignKey("people.id"), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
@@ -72,7 +72,7 @@ class FavoritPeople(db.Model):
         }
 
 
-class FavoritPlanets(db.Model):
+class FavoritePlanets(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     id_user: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
     id_planet: Mapped[int] = mapped_column(ForeignKey("planets.id"), nullable=True)

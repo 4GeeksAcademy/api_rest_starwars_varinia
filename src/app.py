@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Planets, People, FavoritPeople, FavoritPlanets
+from models import db, User, Planets, People, FavoritePeople, FavoritePlanets
 #from models import Person
 
 app = Flask(__name__)
@@ -59,7 +59,7 @@ def handle_hello():
 @app.route('/user/<int:user_id>', methods=['GET'])
 def user_by_id(user_id):
     try:
-        query_results= User.query.filter_by(id=user_id).firts()
+        query_results= User.query.filter_by(id=user_id).first()
         if not query_results:
             return jsonify({"msg":"No users were found"}), 400
         results= list(map(lambda item: item.serialize(), query_results))
@@ -97,7 +97,7 @@ def planets():
 @app.route('/planets/<int:planets_id>', methods=['GET'])
 def planet_by_id(planet_id):
     try:
-        query_results= Planets.query.filter_by(id=planets_id).firts()
+        query_results= Planets.query.filter_by(id=planets_id).first()
         if not query_results:
             return jsonify({"msg":"No planets were found"}), 400
         results= list(map(lambda item: item.serialize(), query_results))
@@ -135,7 +135,7 @@ def people():
 @app.route('/people/<int:people_id>', methods=['GET'])
 def people_by_id(people_id):
     try:
-        query_results= People.query.filter_by(id=people_id).firts()
+        query_results= People.query.filter_by(id=people_id).first()
         if not query_results:
             return jsonify({"msg":"No people were found"}), 400
         results= list(map(lambda item: item.serialize(), query_results))
@@ -149,12 +149,59 @@ def people_by_id(people_id):
     except Exception as e:
         print(f"Error al obtener personajes: {e}")
         return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
+#favoritos del usuario
 
-#post data people
+
+
+#def favorite
+
+def new_favorite (user_id, item_id, item_model, fav_model, field_name):
+    user= User.query.get(user_id)
+        if not user:
+            return jsonify({"msg":"User not found"}), 400
+    item= item_model.query.get(item_id)
+        if not item:
+            return jsonify({"msg":"Item not found"}), 400
+    new_fav= fav_model(user_id=user_id, **{field_name: item_id})
+    db.session.add(new_fav)
+    db.session.commit()
+
+    return jsonify({"msg": "Favorite added successfully"}), 200
 
 
 #post data planet
 
+@app.route("/user/<int:user_id>/favorite/planets", methods=["POST"])
+def add_fav_planet(user_id):
+    planet_id = request.json.get("planet_id")
+
+    if not planet_id:
+        return jsonify({"msg": "planet_id is required"}), 400
+
+    return add_fav_planet(
+        user_id=user_id,
+        item_id=planet_id,
+        item_model=Planets,
+        fav_model=FavoritePlanets,
+        field_name="id_planet"
+    )
+
+#post data people
+
+@app.route("/user/<int:user_id>/favorite/people", methods=["POST"])
+def add_fav_people(user_id):
+    people_id = request.json.get("people_id")
+
+    if not people_id:
+        return jsonify({"msg": "people_id is required"}), 400
+
+    return add_fav_people(
+        user_id=user_id,
+        item_id=people_id,
+        item_model=People,
+        fav_model=FavoritePeople,
+        field_name="id_people"
+    )
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
