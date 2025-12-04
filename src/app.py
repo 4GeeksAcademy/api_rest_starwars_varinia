@@ -40,17 +40,14 @@ def sitemap():
 @app.route('/user', methods=['GET'])
 def handle_hello():
     try:
-        query_results=User.query.all()
+        user = User.query.all()
         if not query_results:
             return jsonify({"msg":"No users were found"}), 400
-        results= list(map(lambda item: item.serialize(), query_results))
 
-        response_body = {
+        return jsonify({
         "msg": "OK",
-        "results": results
-    }
-
-        return jsonify(response_body), 200
+        "results": [u.serialize() for u in users]
+    }), 200
     except Exception as e:
         print(f"Error al obtener usuarios: {e}")
         return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
@@ -59,17 +56,15 @@ def handle_hello():
 @app.route('/user/<int:user_id>', methods=['GET'])
 def user_by_id(user_id):
     try:
-        query_results= User.query.filter_by(id=user_id).first()
-        if not query_results:
-            return jsonify({"msg":"No users were found"}), 400
-        results= list(map(lambda item: item.serialize(), query_results))
+        user = User.query.filter_by(user_id)
+        if not user:
+            return jsonify({"msg":"No not found"}), 400
 
-        response_body = {
+        return jsonify({
         "msg": "OK",
-        "results": results
-    }
-
-        return jsonify(response_body), 200
+        "results": user.serialize()
+    }), 200
+    
     except Exception as e:
         print(f"Error al obtener usuarios: {e}")
         return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
@@ -78,36 +73,30 @@ def user_by_id(user_id):
 @app.route('/planets', methods=['GET'])
 def planets():
     try:
-        query_results=Planets.query.all()
-        if not query_results:
+        planets = Planets.query.all()
+        if not planets:
             return jsonify({"msg":"No planets were found"}), 400
-        results= list(map(lambda item: item.serialize(), query_results))
 
-        response_body = {
+        return jsonify({
         "msg": "OK",
-        "results": results
-    }
-
-        return jsonify(response_body), 200
+        "results": [p.serialize() for p in planets]
+    }), 200
     except Exception as e:
         print(f"Error al obtener planetas: {e}")
         return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
 
 #endpoits planet especifico
 @app.route('/planets/<int:planets_id>', methods=['GET'])
-def planet_by_id(planet_id):
+def planet_by_id(planets_id):
     try:
-        query_results= Planets.query.filter_by(id=planets_id).first()
-        if not query_results:
+        planet= Planets.query.get(planets_id)
+        if not planet:
             return jsonify({"msg":"No planets were found"}), 400
-        results= list(map(lambda item: item.serialize(), query_results))
 
-        response_body = {
+        return jsonify({
         "msg": "OK",
-        "results": results
-    }
-
-        return jsonify(response_body), 200
+        "results": planet.serialize()
+    }), 200
     except Exception as e:
         print(f"Error al obtener planetas: {e}")
         return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
@@ -116,17 +105,14 @@ def planet_by_id(planet_id):
 @app.route('/people', methods=['GET'])
 def people():
     try:
-        query_results=People.query.all()
-        if not query_results:
+        people = People.query.all()
+        if not people:
             return jsonify({"msg":"No people were found"}), 400
-        results= list(map(lambda item: item.serialize(), query_results))
 
-        response_body = {
+        return jsonify({
         "msg": "OK",
-        "results": results
-    }
-
-        return jsonify(response_body), 200
+        "results": [p.serialize() for p in people]
+    }), 200
     except Exception as e:
         print(f"Error al obtener personajes: {e}")
         return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
@@ -135,39 +121,33 @@ def people():
 @app.route('/people/<int:people_id>', methods=['GET'])
 def people_by_id(people_id):
     try:
-        query_results= People.query.filter_by(id=people_id).first()
-        if not query_results:
-            return jsonify({"msg":"No people were found"}), 400
-        results= list(map(lambda item: item.serialize(), query_results))
+        character = People.query.get(people_id)
+        if not character:
+            return jsonify({"msg":"No character were found"}), 400
 
-        response_body = {
+        return jsonify({
         "msg": "OK",
-        "results": results
-    }
-
-        return jsonify(response_body), 200
+        "results": character.serialize()
+    }), 200
     except Exception as e:
         print(f"Error al obtener personajes: {e}")
         return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
-#favoritos del usuario
-
 
 
 #def favorite
 
-def new_favorite (user_id, item_id, item_model, fav_model, field_name):
+def add_favorite (user_id, item_id, item_model, fav_model, field_name):
     user= User.query.get(user_id)
-        if not user:
-            return jsonify({"msg":"User not found"}), 400
+    if not user:
+        return jsonify({"msg":"User not found"}), 400
     item= item_model.query.get(item_id)
-        if not item:
-            return jsonify({"msg":"Item not found"}), 400
+    if not item:
+        return jsonify({"msg":"Item not found"}), 400
     new_fav= fav_model(user_id=user_id, **{field_name: item_id})
     db.session.add(new_fav)
     db.session.commit()
 
     return jsonify({"msg": "Favorite added successfully"}), 200
-
 
 #post data planet
 
