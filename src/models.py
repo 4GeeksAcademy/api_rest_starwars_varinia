@@ -10,8 +10,8 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(400), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
-    favorite_planets: Mapped[list["FavoritePlanets"]] = relationship(back_populates="user")
-    favorite_pe0ple: Mapped[list["FavoritePeople"]] = relationship(back_populates="user")
+    favorite_planets: Mapped[List["FavoritePlanets"]] = relationship(back_populates="user")
+    favorite_people: Mapped[List["FavoritePeople"]] = relationship(back_populates="user")
 
 
     def serialize(self):
@@ -26,7 +26,7 @@ class People(db.Model):
     birth_year: Mapped[str] = mapped_column(String(120), nullable=False)
     gender: Mapped[str] = mapped_column(String(40), nullable=False)
     species: Mapped[str] = mapped_column(String(60), nullable=False)
-    favs: Mapped[list["FavoritePeople"]] = relationship(back_populates="people")
+    favs: Mapped[List["FavoritePeople"]] = relationship(back_populates="people")
 
     def serialize(self):
         return {
@@ -59,29 +59,33 @@ class Planets(db.Model):
 
 class FavoritePeople(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    id_people: Mapped[int] = mapped_column(ForeignKey("people.id"), nullable=True)
+    people_id: Mapped[int] = mapped_column(ForeignKey("people.id"), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    people: Mapped["People"] = relationship(back_populates="personajes")
-    user: Mapped["User"] = relationship(back_populates="personajes")
+    people: Mapped["People"] = relationship(back_populates="favs")
+    user: Mapped["User"] = relationship(back_populates="favorite_people")
 
 
 
     def serialize(self):
         return {
-            "name": self.name,
+            "id": self.id,
+            "user_id": self.user_id,
+            "people": self.people.serialize(),
         }
 
 
 class FavoritePlanets(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    id_user: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
-    id_planet: Mapped[int] = mapped_column(ForeignKey("planets.id"), nullable=True)
-    planet: Mapped["Planets"] = relationship(back_populates="planets")
-    user: Mapped["User"] = relationship(back_populates="planetas")
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
+    planet_id: Mapped[int] = mapped_column(ForeignKey("planets.id"), nullable=True)
+    planet: Mapped["Planets"] = relationship(back_populates="favs")
+    user: Mapped["User"] = relationship(back_populates="favorite_planets")
 
     def serialize(self):
         return {
          
-            "name": self.name,
+            "id": self.id,
+            "user_id": self.user_id,
+            "planet": self.planet.serialize(),
         }
 

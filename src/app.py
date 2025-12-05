@@ -38,15 +38,15 @@ def sitemap():
 
 # endpoints usuario
 @app.route('/user', methods=['GET'])
-def handle_hello():
+def get_user():
     try:
         user = User.query.all()
-        if not query_results:
+        if not user:
             return jsonify({"msg":"No users were found"}), 400
 
         return jsonify({
         "msg": "OK",
-        "results": [u.serialize() for u in users]
+        "results": [u.serialize() for u in user]
     }), 200
     except Exception as e:
         print(f"Error al obtener usuarios: {e}")
@@ -54,11 +54,11 @@ def handle_hello():
 
 #endpoits usuario especifico
 @app.route('/user/<int:user_id>', methods=['GET'])
-def user_by_id(user_id):
+def get_user_by_id(user_id):
     try:
-        user = User.query.filter_by(user_id)
+        user = User.query.get(user_id)
         if not user:
-            return jsonify({"msg":"No not found"}), 400
+            return jsonify({"msg":"User not found"}), 400
 
         return jsonify({
         "msg": "OK",
@@ -87,7 +87,7 @@ def planets():
 
 #endpoits planet especifico
 @app.route('/planets/<int:planets_id>', methods=['GET'])
-def planet_by_id(planets_id):
+def get_planet_by_id(planets_id):
     try:
         planet= Planets.query.get(planets_id)
         if not planet:
@@ -103,7 +103,7 @@ def planet_by_id(planets_id):
 
 #endpoints people
 @app.route('/people', methods=['GET'])
-def people():
+def get_people():
     try:
         people = People.query.all()
         if not people:
@@ -119,7 +119,7 @@ def people():
 
 #endpoints people especifico
 @app.route('/people/<int:people_id>', methods=['GET'])
-def people_by_id(people_id):
+def get_people_by_id(people_id):
     try:
         character = People.query.get(people_id)
         if not character:
@@ -140,17 +140,16 @@ def add_favorite (user_id, item_id, item_model, fav_model, field_name):
     user= User.query.get(user_id)
     if not user:
         return jsonify({"msg":"User not found"}), 400
-    item= item_model.query.get(item_id)
+    item = item_model.query.get(item_id)
     if not item:
         return jsonify({"msg":"Item not found"}), 400
-    new_fav= fav_model(user_id=user_id, **{field_name: item_id})
+    new_fav = fav_model(user_id=user_id, **{field_name: item_id})
     db.session.add(new_fav)
     db.session.commit()
 
     return jsonify({"msg": "Favorite added successfully"}), 200
 
 #post data planet
-
 @app.route("/user/<int:user_id>/favorite/planets", methods=["POST"])
 def add_fav_planet(user_id):
     planet_id = request.json.get("planet_id")
@@ -158,12 +157,12 @@ def add_fav_planet(user_id):
     if not planet_id:
         return jsonify({"msg": "planet_id is required"}), 400
 
-    return add_fav_planet(
+    return add_favorite(
         user_id=user_id,
         item_id=planet_id,
         item_model=Planets,
         fav_model=FavoritePlanets,
-        field_name="id_planet"
+        field_name="planet_id"
     )
 
 #post data people
@@ -175,13 +174,44 @@ def add_fav_people(user_id):
     if not people_id:
         return jsonify({"msg": "people_id is required"}), 400
 
-    return add_fav_people(
+    return add_favorite(
         user_id=user_id,
         item_id=people_id,
         item_model=People,
         fav_model=FavoritePeople,
-        field_name="id_people"
+        field_name="people_id"
     )
+#delete planet fav
+@app.route("/user/<int:user_id>/favorite/planets/<int:planet_id>", methods=["DELETE"])
+def delete_fav_planet(user_id, planet_id):
+    try:
+        favorite = FavoritePlanets.query.filter_by(user_id = user_id, planet_id = planet_id).first()
+        if not favorite:
+            return jsonify({"msg":"Favorite planet not found"}), 400
+        db.session.delete(favorite)
+        db.session.commit()
+
+        return jsonify({"msg":"Planet deleted"}), 200
+        
+    except Exception as e:
+        print(f"Error al eliminar planeta: {e}")
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
+
+#delete people fav
+@app.route("/user/<int:user_id>/favorite/people/<int:people_id>", methods=["DELETE"])
+def delete_fav_people(user_id, people_id):
+    try:
+        favorite = FavoritePeople.query.filter_by(user_id = user_id, people_id = people_id).first()
+        if not favorite:
+            return jsonify({"msg":"Favorite people not found"}), 400
+        db.session.delete(favorite)
+        db.session.commit()
+
+        return jsonify({"msg":"People deleted"}), 200
+        
+    except Exception as e:
+        print(f"Error al eliminar personajes: {e}")
+        return jsonify({"msg": "Internal Server Error", "error": str(e)}), 500
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
